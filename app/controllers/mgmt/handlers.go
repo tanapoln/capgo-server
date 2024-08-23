@@ -22,6 +22,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func NewCapgoManagementController() *CapgoManagementController {
+	return &CapgoManagementController{}
+}
+
 type CapgoManagementController struct {
 }
 
