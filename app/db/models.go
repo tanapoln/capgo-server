@@ -40,6 +40,7 @@ type Release struct {
 	// ActiveBundleID is a bundle ID that's app must be used.
 	ActiveBundleID *primitive.ObjectID `bson:"active_bundle_id"`
 
+	UpdatedAt time.Time `bson:"updated_at"`
 	CreatedAt time.Time `bson:"created_at"`
 }
 

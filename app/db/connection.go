@@ -23,6 +23,10 @@ func InitDB() error {
 	if err != nil {
 		return err
 	}
+	if err := _conn.Ping(ctx, nil); err != nil {
+		return err
+	}
+
 	conn = _conn
 
 	db = conn.Database(cfg.MongoDatabase)

@@ -1,3 +1,5 @@
+mongo_connection_string: mongodb://root:password@localhost:27017/
+mongo_database: capgo
 s3_bucket: "test"
 management_api_tokens:
 - key1

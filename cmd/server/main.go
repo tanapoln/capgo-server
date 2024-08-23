@@ -10,12 +10,19 @@ import (
 	"time"
 
 	"github.com/tanapoln/capgo-server/app"
+	"github.com/tanapoln/capgo-server/app/db"
 	"github.com/tanapoln/capgo-server/cmd/server/otel"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	slog.Info("Connecting to database...")
+	if err := db.InitDB(); err != nil {
+		slog.Error("Error init db", "error", err)
+		os.Exit(1)
+	}
 
 	router := app.InitRouter()
 

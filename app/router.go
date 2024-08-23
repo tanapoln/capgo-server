@@ -22,16 +22,14 @@ func InitRouter() *gin.Engine {
 
 	capgo := router.Group("")
 	{
-		capgo.Use(
-			ratelimit.NewRateLimiter(
-				ratelimit.KeyByIPAddress,
-				ratelimit.CreateLimiterFactory(rate.Every(1*time.Minute), config.Get().LimitRequestPerMinute),
-				ratelimit.DefaultAbort,
-			),
+		updateLimit := ratelimit.NewRateLimiter(
+			ratelimit.KeyByIPAddress,
+			ratelimit.CreateLimiterFactory(rate.Every(1*time.Minute), config.Get().LimitRequestPerMinute),
+			ratelimit.DefaultAbort,
 		)
 
 		ctrl := capgoCtrl.NewCapgoController()
-		capgo.POST("/updates", ctrl.Updates)
+		capgo.POST("/updates", updateLimit, ctrl.Updates)
 		capgo.POST("/stats", ctrl.Stats)
 		capgo.POST("/channel_self", ctrl.RegisterChannel)
 		capgo.DELETE("/channel_self", ctrl.UnregisterChannel)

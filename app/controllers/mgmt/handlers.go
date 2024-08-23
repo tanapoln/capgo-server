@@ -31,31 +31,28 @@ type CapgoManagementController struct {
 
 func (ctrl *CapgoManagementController) UploadBundle(ctx *gin.Context) {
 	utils.Handle(ctx, func() (interface{}, error) {
-		file, header, err := ctx.Request.FormFile("bundle")
-		if err != nil {
-			return nil, fmt.Errorf("file upload error: %v", err)
+		var req UploadBundleRequest
+		if err := ctx.Bind(&req); err != nil {
+			return nil, fmt.Errorf("failed to bind request: %v", err)
 		}
-		defer file.Close()
-
-		if header.Header.Get("Content-Type") != "application/zip" {
-			return nil, fmt.Errorf("invalid file type: only zip files are allowed")
+		if err := req.IsValid(); err != nil {
+			return nil, err
 		}
 
-		crc, err := calculateCRC(file)
+		crc, err := calculateCRC(req.Bundle)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate CRC: %v", err)
 		}
 
-		versionName := ctx.PostForm("version_name")
-		publicDownloadURL, err := saveFileToS3Public(ctx.Request.Context(), versionName, header)
+		publicDownloadURL, err := saveFileToS3Public(ctx.Request.Context(), req.VersionName, req.Bundle)
 		if err != nil {
 			return nil, fmt.Errorf("failed to save file: %v", err)
 		}
 
 		bundle := db.Bundle{
 			ID:                primitive.NewObjectID(),
-			VersionName:       versionName,
-			Description:       ctx.PostForm("description"),
+			VersionName:       req.VersionName,
+			Description:       req.Description,
 			CRC:               crc,
 			PublicDownloadURL: publicDownloadURL,
 			CreatedAt:         time.Now(),
@@ -75,28 +72,28 @@ func (ctrl *CapgoManagementController) UploadBundle(ctx *gin.Context) {
 
 func (ctrl *CapgoManagementController) CreateRelease(ctx *gin.Context) {
 	utils.Handle(ctx, func() (interface{}, error) {
-		var reqBody CreateReleaseRequest
-		if err := ctx.ShouldBindJSON(&reqBody); err != nil {
+		var req CreateReleaseRequest
+		if err := ctx.ShouldBindJSON(&req); err != nil {
 			return nil, fmt.Errorf("invalid request body: %v", err)
 		}
-
-		if !reqBody.IsValid() {
-			return nil, fmt.Errorf("invalid request data")
+		if err := req.IsValid(); err != nil {
+			return nil, err
 		}
 
 		var bundle db.Bundle
-		err := db.Collections().Bundles().FindOne(ctx.Request.Context(), bson.M{"_id": reqBody.BuiltinBundleID}).Decode(&bundle)
+		err := db.Collections().Bundles().FindOne(ctx.Request.Context(), bson.M{"_id": req.GetBuiltinBundleID()}).Decode(&bundle)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch bundle id: %v", reqBody.BuiltinBundleID)
+			return nil, fmt.Errorf("failed to fetch bundle id: %v", req.BuiltinBundleID)
 		}
 
 		release := db.Release{
 			ID:              primitive.NewObjectID(),
-			Platform:        reqBody.GetPlatform(),
-			AppID:           reqBody.AppID,
-			VersionName:     reqBody.VersionName,
-			VersionCode:     reqBody.VersionCode,
+			Platform:        req.GetPlatform(),
+			AppID:           req.AppID,
+			VersionName:     req.VersionName,
+			VersionCode:     req.VersionCode,
 			BuiltinBundleID: bundle.ID,
+			UpdatedAt:       time.Now(),
 			CreatedAt:       time.Now(),
 		}
 
@@ -118,12 +115,17 @@ func (ctrl *CapgoManagementController) UpdateRelease(ctx *gin.Context) {
 		if err := ctx.ShouldBindJSON(&req); err != nil {
 			return nil, fmt.Errorf("failed to bind request: %v", err)
 		}
-		if !req.IsValid() {
-			return nil, fmt.Errorf("invalid request body")
+		if err := req.IsValid(); err != nil {
+			return nil, err
 		}
 
 		var release db.Release
-		err := db.Collections().Releases().FindOne(ctx.Request.Context(), bson.M{"_id": req.ReleaseID}).Decode(&release)
+		err := db.Collections().Releases().FindOne(
+			ctx.Request.Context(),
+			bson.M{
+				"_id": req.GetReleaseID(),
+			},
+		).Decode(&release)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find release id: %v", req.ReleaseID)
 		}
@@ -131,8 +133,13 @@ func (ctrl *CapgoManagementController) UpdateRelease(ctx *gin.Context) {
 		if req.ReleaseDate != nil {
 			release.ReleasedDate = req.ReleaseDate
 		}
+		release.UpdatedAt = time.Now()
 
-		result, err := db.Collections().Releases().UpdateOne(ctx.Request.Context(), bson.M{"_id": release.ID}, bson.M{"$set": release})
+		result, err := db.Collections().Releases().UpdateOne(
+			ctx.Request.Context(),
+			bson.M{"_id": release.ID},
+			bson.M{"$set": release},
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update release: %v", err)
 		}
@@ -206,18 +213,18 @@ func (ctrl *CapgoManagementController) SetReleaseActiveBundle(ctx *gin.Context) 
 			return nil, fmt.Errorf("failed to bind request: %v", err)
 		}
 
-		if !req.IsValid() {
-			return nil, fmt.Errorf("invalid request body")
+		if err := req.IsValid(); err != nil {
+			return nil, err
 		}
 
 		var bundle db.Bundle
-		err := db.Collections().Bundles().FindOne(ctx.Request.Context(), bson.M{"_id": req.BundleID}).Decode(&bundle)
+		err := db.Collections().Bundles().FindOne(ctx.Request.Context(), bson.M{"_id": req.GetBundleID()}).Decode(&bundle)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find bundle id: %v", req.BundleID)
 		}
 
 		var release db.Release
-		err = db.Collections().Releases().FindOne(ctx.Request.Context(), bson.M{"_id": req.ReleaseID}).Decode(&release)
+		err = db.Collections().Releases().FindOne(ctx.Request.Context(), bson.M{"_id": req.GetReleaseID()}).Decode(&release)
 		if err != nil {
 			return nil, fmt.Errorf("failed to find release id: %v", req.ReleaseID)
 		}
@@ -225,7 +232,12 @@ func (ctrl *CapgoManagementController) SetReleaseActiveBundle(ctx *gin.Context) 
 		result, err := db.Collections().Releases().UpdateOne(
 			ctx.Request.Context(),
 			bson.M{"_id": release.ID},
-			bson.M{"$set": bson.M{"active_bundle_id": bundle.ID}},
+			bson.M{
+				"$set": bson.M{
+					"active_bundle_id": bundle.ID,
+					"updated_at":       time.Now(),
+				},
+			},
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update release: %v", err)
@@ -241,23 +253,23 @@ func (ctrl *CapgoManagementController) SetReleaseActiveBundle(ctx *gin.Context) 
 }
 
 // Placeholder functions (implement these according to your actual storage and database setup)
-func saveFileToS3Public(ctx context.Context, versionName string, header *multipart.FileHeader) (string, error) {
+func saveFileToS3Public(ctx context.Context, versionName string, file *multipart.FileHeader) (string, error) {
 	filename := versionName + "_" + xid.New().String() + ".zip"
 
-	file, err := header.Open()
+	r, err := file.Open()
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %v", err)
 	}
-	defer file.Close()
+	defer r.Close()
 
 	uploader := s3ext.NewUploader()
 	result, err := uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(config.Get().S3Bucket),
 		Key:    aws.String(filename),
-		Body:   file,
+		Body:   r,
 		ACL:    types.ObjectCannedACLPublicRead,
 		Metadata: map[string]string{
-			"Content-Type": header.Header.Get("Content-Type"),
+			"Content-Type": file.Header.Get("Content-Type"),
 		},
 	})
 	if err != nil {
@@ -268,9 +280,15 @@ func saveFileToS3Public(ctx context.Context, versionName string, header *multipa
 	return result.Location, nil
 }
 
-func calculateCRC(file io.Reader) (string, error) {
+func calculateCRC(file *multipart.FileHeader) (string, error) {
+	r, err := file.Open()
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %v", err)
+	}
+	defer r.Close()
+
 	hash := crc32.NewIEEE()
-	_, err := io.Copy(hash, file)
+	_, err = io.Copy(hash, r)
 	if err != nil {
 		return "", err
 	}
@@ -307,6 +325,7 @@ func mapReleaseToResponse(release db.Release) ReleaseResponse {
 		Platform:        string(release.Platform),
 		VersionCode:     release.VersionCode,
 		BuiltinBundleID: release.BuiltinBundleID.Hex(),
+		UpdatedAt:       release.UpdatedAt,
 		CreatedAt:       release.CreatedAt,
 	}
 	if release.ReleasedDate != nil {

@@ -1,18 +1,30 @@
 package mgmt
 
 import (
+	"fmt"
 	"mime/multipart"
 	"time"
 
 	"github.com/tanapoln/capgo-server/app/db"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UploadBundleRequest struct {
-	Bundle      multipart.File `form:"bundle"`
-	AppID       string         `form:"appId"`
-	Platform    string         `form:"platform"`
-	VersionName string         `form:"versionName"`
-	VersionCode string         `form:"versionCode"`
+	Bundle      *multipart.FileHeader `form:"bundle"`
+	VersionName string                `form:"version_name"`
+	Description string                `form:"description"`
+}
+
+func (req *UploadBundleRequest) IsValid() error {
+	b := req.Bundle != nil && req.VersionName != ""
+	if !b {
+		return fmt.Errorf("invalid request body")
+	}
+	contentType := req.Bundle.Header.Get("Content-Type")
+	if contentType != "application/zip" {
+		return fmt.Errorf("invalid file type: only zip files are allowed")
+	}
+	return nil
 }
 
 type BundleResponse struct {
@@ -36,6 +48,7 @@ type ReleaseResponse struct {
 	ReleaseDate     *time.Time `json:"release_date"`
 	BuiltinBundleID string     `json:"builtin_bundle_id"`
 	ActiveBundleID  *string    `json:"active_bundle_id"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 	CreatedAt       time.Time  `json:"created_at"`
 }
 
@@ -48,8 +61,29 @@ type SetReleaseActiveBundleRequest struct {
 	BundleID  string `json:"bundle_id"`
 }
 
-func (s *SetReleaseActiveBundleRequest) IsValid() bool {
-	return s.ReleaseID != "" && s.BundleID != ""
+func (s *SetReleaseActiveBundleRequest) IsValid() error {
+	if s.ReleaseID == "" || s.BundleID == "" {
+		return fmt.Errorf("invalid request body")
+	}
+	_, err := primitive.ObjectIDFromHex(s.ReleaseID)
+	if err != nil {
+		return fmt.Errorf("invalid release id: %v", err)
+	}
+	_, err = primitive.ObjectIDFromHex(s.BundleID)
+	if err != nil {
+		return fmt.Errorf("invalid bundle id: %v", err)
+	}
+	return nil
+}
+
+func (s *SetReleaseActiveBundleRequest) GetReleaseID() primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(s.ReleaseID)
+	return id
+}
+
+func (s *SetReleaseActiveBundleRequest) GetBundleID() primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(s.BundleID)
+	return id
 }
 
 type CreateReleaseRequest struct {
@@ -60,11 +94,24 @@ type CreateReleaseRequest struct {
 	BuiltinBundleID string `json:"builtin_bundle_id"`
 }
 
-func (req *CreateReleaseRequest) IsValid() bool {
+func (req *CreateReleaseRequest) IsValid() error {
 	if _, err := db.ParsePlatform(req.Platform); err != nil {
-		return false
+		return fmt.Errorf("invalid platform: %v", err)
 	}
-	return req.AppID != "" && req.VersionName != "" && req.VersionCode != "" && req.BuiltinBundleID != ""
+	_, err := primitive.ObjectIDFromHex(req.BuiltinBundleID)
+	if err != nil {
+		return fmt.Errorf("invalid builtin bundle id: %v", err)
+	}
+	b := req.AppID != "" && req.VersionName != "" && req.VersionCode != "" && req.BuiltinBundleID != ""
+	if !b {
+		return fmt.Errorf("invalid request body")
+	}
+	return nil
+}
+
+func (req *CreateReleaseRequest) GetBuiltinBundleID() primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(req.BuiltinBundleID)
+	return id
 }
 
 func (req *CreateReleaseRequest) GetPlatform() db.Platform {
@@ -77,14 +124,23 @@ type UpdateReleaseRequest struct {
 	ReleaseDate *time.Time `json:"release_date"`
 }
 
-func (req *UpdateReleaseRequest) IsValid() bool {
+func (req *UpdateReleaseRequest) IsValid() error {
 	if req.ReleaseID == "" {
-		return false
+		return fmt.Errorf("missing release id")
+	}
+	_, err := primitive.ObjectIDFromHex(req.ReleaseID)
+	if err != nil {
+		return fmt.Errorf("invalid release id: %v", err)
 	}
 	if req.ReleaseDate != nil {
 		if req.ReleaseDate.IsZero() {
-			return false
+			return fmt.Errorf("release date is empty")
 		}
 	}
-	return true
+	return nil
+}
+
+func (req *UpdateReleaseRequest) GetReleaseID() primitive.ObjectID {
+	id, _ := primitive.ObjectIDFromHex(req.ReleaseID)
+	return id
 }
