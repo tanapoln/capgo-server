@@ -1,0 +1,4 @@
+s3_bucket: "test"
+management_api_tokens:
+- key1
+- key2
