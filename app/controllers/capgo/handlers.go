@@ -1,55 +1,77 @@
 package capgo
 
 import (
-	"fmt"
 	"log/slog"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/xid"
+	"github.com/tanapoln/capgo-server/app/controllers/utils"
+	"github.com/tanapoln/capgo-server/app/services"
 )
 
 func NewCapgoController() *CapgoController {
-	return &CapgoController{}
+	return &CapgoController{
+		updateService: &services.UpdateService{},
+	}
 }
 
 type CapgoController struct {
+	updateService *services.UpdateService
 }
 
 func (ctrl *CapgoController) Updates(ctx *gin.Context) {
-	handle(ctx, func() (interface{}, error) {
-		return nil, nil
+	utils.Handle(ctx, func() (interface{}, error) {
+		var reqBody UpdateRequest
+		err := ctx.BindJSON(&reqBody)
+		if err != nil {
+			return CapgoErrorResponse{
+				Error: "invalid request body json",
+			}, nil
+		}
+
+		if !reqBody.IsValid() {
+			return CapgoErrorResponse{
+				Error: "invalid request data",
+			}, nil
+		}
+
+		bundle, err := ctrl.updateService.GetLatest(ctx.Request.Context(), services.GetLatestQuery{
+			AppID:       reqBody.AppID,
+			Platform:    reqBody.GetPlatform(),
+			VersionName: reqBody.VersionName,
+			VersionCode: reqBody.VersionCode,
+		})
+		if err != nil {
+			return CapgoErrorResponse{
+				Error: err.Error(),
+			}, nil
+		}
+
+		return UpdateWithNewMinorVersionResponse{
+			Version:   bundle.VersionName,
+			Checksum:  bundle.CRC,
+			URL:       bundle.PublicDownloadURL,
+			Signature: bundle.Signature,
+		}, nil
 	})
 }
 
 func (ctrl *CapgoController) Stats(ctx *gin.Context) {
-	handle(ctx, func() (interface{}, error) {
-		return nil, nil
+	utils.Handle(ctx, func() (interface{}, error) {
+		slog.Info("Capgo - stats", "body", ctx.Request.Body)
+		return gin.H{}, nil
 	})
 }
 
 func (ctrl *CapgoController) RegisterChannel(ctx *gin.Context) {
-	handle(ctx, func() (interface{}, error) {
-		return nil, nil
+	utils.Handle(ctx, func() (interface{}, error) {
+		slog.Info("Capgo - register channel", "body", ctx.Request.Body)
+		return gin.H{}, nil
 	})
 }
 
 func (ctrl *CapgoController) UnregisterChannel(ctx *gin.Context) {
-	handle(ctx, func() (interface{}, error) {
-		return nil, nil
+	utils.Handle(ctx, func() (interface{}, error) {
+		slog.Info("Capgo - unregister channel", "body", ctx.Request.Body)
+		return gin.H{}, nil
 	})
-}
-
-func handle(ctx *gin.Context, fn func() (interface{}, error)) {
-	resp, err := fn()
-	if err != nil {
-		traceId := xid.New().String()
-		slog.Error("handler return error. response with HTTP 500", "trace", traceId, "error", err, "path", ctx.Request.RequestURI)
-		ctx.JSON(http.StatusInternalServerError, CapgoErrorResponse{
-			Error: fmt.Sprintf("Internal Server Error. trace=%s", traceId),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, resp)
 }

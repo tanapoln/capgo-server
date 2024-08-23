@@ -1,5 +1,9 @@
 package capgo
 
+import (
+	"github.com/tanapoln/capgo-server/app/db"
+)
+
 type UpdateRequest struct {
 	Platform string `json:"platform"`
 	DeviceID string `json:"device_id"`
@@ -18,6 +22,19 @@ type UpdateRequest struct {
 	IsEmulator     bool   `json:"is_emulator"`
 	IsProd         bool   `json:"is_prod"`
 	DefaultChannel string `json:"defaultChannel"`
+}
+
+func (c *UpdateRequest) IsValid() bool {
+	_, err := db.ParsePlatform(c.Platform)
+	if err != nil {
+		return false
+	}
+	return c.Platform != "" && c.DeviceID != "" && c.AppID != "" && c.VersionBuild != "" && c.VersionCode != ""
+}
+
+func (c *UpdateRequest) GetPlatform() db.Platform {
+	p, _ := db.ParsePlatform(c.Platform)
+	return p
 }
 
 type UpdateWithNewMinorVersionResponse struct {
