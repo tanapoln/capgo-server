@@ -65,7 +65,7 @@ export function useCreateReleaseMutation() {
 export function useUpdateReleaseMutation() {
 	const trigger = async (req: UpdateReleaseRequest) => {
 		await updateRelease(req);
-		triggerInvalidate("releases", true);
+		triggerInvalidate("releases");
 	};
 	return { trigger };
 }
@@ -73,7 +73,7 @@ export function useUpdateReleaseMutation() {
 export function useSetReleaseActiveBundleMutation() {
 	const trigger = async (req: SetReleaseActiveBundleRequest) => {
 		await setReleaseActiveBundle(req);
-		triggerInvalidate("releases", true);
+		triggerInvalidate("releases");
 	};
 	return { trigger };
 }
@@ -81,12 +81,12 @@ export function useSetReleaseActiveBundleMutation() {
 export function useDeleteReleaseMutation() {
 	const trigger = async (req: DeleteReleaseRequest) => {
 		await deleteRelease(req);
-		triggerInvalidate("releases", true);
+		triggerInvalidate("releases");
 	};
 	return { trigger };
 }
 
-function triggerInvalidate(key: string, revalidate: boolean = false) {
+function triggerInvalidate(key: string, revalidate: boolean = true) {
 	mutate(key, undefined, {
 		revalidate: revalidate
 	});
