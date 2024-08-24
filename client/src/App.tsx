@@ -1,7 +1,6 @@
 import { Button, Layout, Menu, type MenuProps } from "antd";
-import { useState } from "react";
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { MenuClickEventHandler } from "rc-menu/lib/interface";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const { Header, Content } = Layout;
 
@@ -24,9 +23,9 @@ const items: MenuItem[] = [
 function App() {
 	const token = localStorage.getItem("token");
 	const navigate = useNavigate();
-	const [currentPage, setCurrentPage] = useState(useLocation().pathname.replace(/\/$/, ""));
+	const location = useLocation();
+	const currentPage = location.pathname.replace(/\/$/, "")
 	const handleNavigate: MenuClickEventHandler = (e) => {
-		setCurrentPage(e.key);
 		navigate(e.key);
 	};
 
