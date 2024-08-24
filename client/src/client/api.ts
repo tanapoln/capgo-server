@@ -27,6 +27,9 @@ const callApi = async (
 		body: body,
 	});
 	if (!response.ok) {
+		if (response.status === 401) {
+			localStorage.removeItem("token");
+		}
 		const errBody = await response.json();
 		throw new Error(`API Error ${response.status}: ${errBody["error"] ?? errBody["message"] ?? ""}`);
 	}
