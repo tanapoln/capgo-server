@@ -60,7 +60,7 @@ export const createRelease = async (req: CreateReleaseRequest): Promise<ReleaseM
 };
 
 export const updateRelease = async (req: UpdateReleaseRequest): Promise<ReleaseModifiedResponse> => {
-	const resp = await callApi("POST", "releases.create", JSON.stringify(req));
+	const resp = await callApi("POST", "releases.update", JSON.stringify(req));
 	return resp.json();
 };
 

@@ -49,7 +49,7 @@ export function useBundle(id: string) {
 export function useUploadBundleMutation() {
 	const trigger = async (req: UploadBundleRequest) => {
 		await uploadBundle(req);
-		mutate("bundles");
+		triggerInvalidate("bundles");
 	};
 	return { trigger };
 }
@@ -57,7 +57,7 @@ export function useUploadBundleMutation() {
 export function useCreateReleaseMutation() {
 	const trigger = async (req: CreateReleaseRequest) => {
 		await createRelease(req);
-		mutate("releases");
+		triggerInvalidate("releases");
 	};
 	return { trigger };
 }
@@ -65,7 +65,7 @@ export function useCreateReleaseMutation() {
 export function useUpdateReleaseMutation() {
 	const trigger = async (req: UpdateReleaseRequest) => {
 		await updateRelease(req);
-		mutate("releases");
+		triggerInvalidate("releases", true);
 	};
 	return { trigger };
 }
@@ -73,7 +73,7 @@ export function useUpdateReleaseMutation() {
 export function useSetReleaseActiveBundleMutation() {
 	const trigger = async (req: SetReleaseActiveBundleRequest) => {
 		await setReleaseActiveBundle(req);
-		mutate("releases");
+		triggerInvalidate("releases");
 	};
 	return { trigger };
 }
@@ -81,7 +81,13 @@ export function useSetReleaseActiveBundleMutation() {
 export function useDeleteReleaseMutation() {
 	const trigger = async (req: DeleteReleaseRequest) => {
 		await deleteRelease(req);
-		mutate("releases");
+		triggerInvalidate("releases");
 	};
 	return { trigger };
+}
+
+function triggerInvalidate(key: string, revalidate: boolean = false) {
+	mutate(key, undefined, {
+		revalidate: revalidate
+	});
 }

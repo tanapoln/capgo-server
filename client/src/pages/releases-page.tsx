@@ -1,7 +1,9 @@
-import { Button, Flex, Input, Popconfirm, Popover, Space, Table, type TableColumnsType } from "antd";
+import { Button, Flex, Input, Popconfirm, Table, type TableColumnsType } from "antd";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import { useBundle, useDeleteReleaseMutation, useReleases } from "../client/hooks";
-import type { BundleResponse, ReleaseResponse } from "../client/types";
+import { useDeleteReleaseMutation, useReleases } from "../client/hooks";
+import type { ReleaseResponse } from "../client/types";
+import { BundlePopover } from "../ui/bundle";
 
 export default function ReleasesPage() {
 	const { data: releases, isLoading, error } = useReleases();
@@ -94,6 +96,7 @@ function ReleaseTable({ data }: { data: ReleaseResponse[] }) {
 			title: "Release Date",
 			dataIndex: "release_date",
 			sorter: (a, b) => (a.release_date ?? "").localeCompare(b.release_date ?? ""),
+			render: (_, record) => record.release_date ? dayjs(record.release_date).format("YYYY-MM-DD HH:mm:ss") : "",
 		},
 		{
 			title: "Builtin Bundle ID",
@@ -130,40 +133,4 @@ function ReleaseTable({ data }: { data: ReleaseResponse[] }) {
 	];
 
 	return <Table dataSource={data} columns={columns} rowKey="id" />;
-}
-
-function BundlePopover({ bundle_id }: { bundle_id: string }) {
-	const { data: bundle, isLoading, error } = useBundle(bundle_id);
-
-	const title = bundle ? `${bundle.app_id} - ${bundle.version_name}` : "";
-
-	return (
-		<>
-			{isLoading && <div>Loading...</div>}
-			{error && <div>Error: {error.message}</div>}
-			{bundle && (
-				<Popover title={title} content={<BundlePopoverContent bundle={bundle} />}>
-					<div style={{ cursor: "pointer" }}>{title}</div>
-				</Popover>
-			)}
-		</>
-	);
-}
-
-function BundlePopoverContent({ bundle }: { bundle: BundleResponse }) {
-	return (
-		<Space direction="vertical">
-			<div>App ID: {bundle.app_id}</div>
-			<div>Version Name: {bundle.version_name}</div>
-			<div>Description: {bundle.description}</div>
-			<div>Checksum: {bundle.crc_checksum}</div>
-			<div>Created Date: {bundle.created_at}</div>
-			<div>
-				Download URL:{" "}
-				<a href={bundle.public_download_url} target="_blank" rel="noreferrer">
-					Download
-				</a>
-			</div>
-		</Space>
-	);
 }
