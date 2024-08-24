@@ -51,6 +51,7 @@ func (ctrl *CapgoManagementController) UploadBundle(ctx *gin.Context) {
 
 		bundle := db.Bundle{
 			ID:                primitive.NewObjectID(),
+			AppID:             req.AppID,
 			VersionName:       req.VersionName,
 			Description:       req.Description,
 			CRC:               crc,
@@ -252,6 +253,30 @@ func (ctrl *CapgoManagementController) SetReleaseActiveBundle(ctx *gin.Context) 
 	})
 }
 
+func (ctrl *CapgoManagementController) DeleteRelease(ctx *gin.Context) {
+	utils.Handle(ctx, func() (interface{}, error) {
+		var req DeleteReleaseRequest
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			return nil, fmt.Errorf("failed to bind request: %v", err)
+		}
+		if err := req.IsValid(); err != nil {
+			return nil, err
+		}
+
+		result, err := db.Collections().Releases().DeleteOne(ctx.Request.Context(), bson.M{"_id": req.GetReleaseID()})
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete release: %v", err)
+		}
+		if result.DeletedCount == 0 {
+			return nil, fmt.Errorf("failed to delete release, no affected. release id: %v", req.ReleaseID)
+		}
+
+		return gin.H{
+			"message": "Release deleted successfully",
+		}, nil
+	})
+}
+
 // Placeholder functions (implement these according to your actual storage and database setup)
 func saveFileToS3Public(ctx context.Context, versionName string, file *multipart.FileHeader) (string, error) {
 	filename := versionName + "_" + xid.New().String() + ".zip"
@@ -265,11 +290,11 @@ func saveFileToS3Public(ctx context.Context, versionName string, file *multipart
 	uploader := s3ext.NewUploader()
 	result, err := uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(config.Get().S3Bucket),
-		Key:    aws.String(filename),
+		Key:    aws.String(fmt.Sprintf("%s/%s", time.Now().Format("2006-01"), filename)),
 		Body:   r,
 		ACL:    types.ObjectCannedACLPublicRead,
 		Metadata: map[string]string{
-			"Content-Type": file.Header.Get("Content-Type"),
+			"Content-Type": "application/zip",
 		},
 	})
 	if err != nil {
@@ -310,6 +335,7 @@ func saveBundleToDatabase(ctx context.Context, bundle db.Bundle) error {
 func mapBundleToResponse(bundle db.Bundle) BundleResponse {
 	return BundleResponse{
 		ID:                bundle.ID.Hex(),
+		AppID:             bundle.AppID,
 		VersionName:       bundle.VersionName,
 		Description:       bundle.Description,
 		CRC:               bundle.CRC,

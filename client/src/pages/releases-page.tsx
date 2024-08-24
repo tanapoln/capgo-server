@@ -1,7 +1,7 @@
-import { NavLink } from "react-router-dom";
+import { Button, Flex, Input, Popconfirm, Table, type TableColumnsType } from "antd";
+import { useNavigate } from "react-router-dom";
+import { useDeleteReleaseMutation, useReleases } from "../client/hooks";
 import type { ReleaseResponse } from "../client/types";
-import { Button, Flex, Input, Table, type TableColumnsType } from "antd";
-import { useReleases } from "../client/hooks";
 
 export default function ReleasesPage() {
 	const { data: releases, isLoading, error } = useReleases();
@@ -17,6 +17,9 @@ export default function ReleasesPage() {
 }
 
 function ReleaseTable({ data }: { data: ReleaseResponse[] }) {
+	const navigate = useNavigate();
+	const { trigger: deleteRelease } = useDeleteReleaseMutation();
+
 	const columns: TableColumnsType<ReleaseResponse> = [
 		{
 			title: "ID",
@@ -103,7 +106,23 @@ function ReleaseTable({ data }: { data: ReleaseResponse[] }) {
 		{
 			title: "Actions",
 			dataIndex: "id",
-			render: (_, record) => <NavLink to={`release/${record.id}/update`}>Update</NavLink>,
+			align: "center",
+			render: (_, record) => (
+				<div>
+					<Button type="link" onClick={() => navigate(`release/${record.id}/update`)}>
+						Update
+					</Button>
+					<Popconfirm
+						title="Delete this release?"
+						okText="Delete"
+						onConfirm={() => deleteRelease({ release_id: record.id })}
+					>
+						<Button type="dashed" danger>
+							Delete
+						</Button>
+					</Popconfirm>
+				</div>
+			),
 		},
 	];
 

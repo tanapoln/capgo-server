@@ -1,6 +1,8 @@
 import {
 	BundleModifiedResponse,
 	CreateReleaseRequest,
+	DeleteReleaseRequest,
+	GenericResponse,
 	ListAllBundlesResponse,
 	ListAllReleasesResponse,
 	ReleaseModifiedResponse,
@@ -25,7 +27,7 @@ const callApi = async (
 		body: body,
 	});
 	if (!response.ok) {
-		const errBody = await response.json()
+		const errBody = await response.json();
 		throw new Error(`API Error ${response.status}: ${errBody["error"] ?? errBody["message"] ?? ""}`);
 	}
 	return response;
@@ -37,10 +39,11 @@ export const listBundles = async (): Promise<ListAllBundlesResponse> => {
 };
 
 export const uploadBundle = async (req: UploadBundleRequest): Promise<BundleModifiedResponse> => {
-	const body = new FormData()
-	body.append("bundle", req.bundle)
-	body.append("version_name", req.version_name)
-	body.append("description", req.description)
+	const body = new FormData();
+	body.append("bundle", req.bundle);
+	body.append("app_id", req.app_id);
+	body.append("version_name", req.version_name);
+	body.append("description", req.description);
 
 	const resp = await callApi("POST", "bundles.upload", body);
 	return resp.json();
@@ -58,6 +61,11 @@ export const createRelease = async (req: CreateReleaseRequest): Promise<ReleaseM
 
 export const updateRelease = async (req: UpdateReleaseRequest): Promise<ReleaseModifiedResponse> => {
 	const resp = await callApi("POST", "releases.create", JSON.stringify(req));
+	return resp.json();
+};
+
+export const deleteRelease = async (req: DeleteReleaseRequest): Promise<GenericResponse> => {
+	const resp = await callApi("POST", "releases.delete", JSON.stringify(req));
 	return resp.json();
 };
 

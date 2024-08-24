@@ -4,12 +4,14 @@ export type Platform = "ios" | "android"
 
 export type UploadBundleRequest = {
     bundle: File;
+    app_id: string;
     version_name: string;
     description: string;
 }
 
 export type BundleResponse = {
     id: string;
+    app_id: string;
     version_name: string;
     description: string;
     crc_checksum: string;
@@ -63,4 +65,12 @@ export type CreateReleaseRequest = {
 export type UpdateReleaseRequest = {
     release_id: string;
     release_date: string | undefined;
+}
+
+export type DeleteReleaseRequest = {
+    release_id: string;
+}
+
+export type GenericResponse = {
+    message: string;
 }

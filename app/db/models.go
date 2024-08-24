@@ -10,6 +10,7 @@ import (
 
 type Bundle struct {
 	ID          primitive.ObjectID `bson:"_id"`
+	AppID       string             `bson:"app_id"`
 	VersionName string             `bson:"version_name"`
 	Description string             `bson:"description"`
 	CRC         string             `bson:"crc_checksum"`

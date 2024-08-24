@@ -1,8 +1,7 @@
 import { Button, Form, FormProps, Input, message, Radio, Select } from "antd";
-import type { Platform } from "../client/types";
 import { useNavigate } from "react-router-dom";
 import { useBundles, useCreateReleaseMutation } from "../client/hooks";
-
+import type { Platform } from "../client/types";
 
 type FieldType = {
 	platform: string;
@@ -97,7 +96,9 @@ export default function ReleaseCreatePage() {
 							<Select
 								options={bundles.data.map((b) => ({
 									value: b.id,
-									label: `${b.version_name} - ${b.description}`,
+									label: `${b.app_id} - ${b.version_name}${
+										b.description !== "" ? ` [${b.description}]` : ""
+									}`,
 								}))}
 							/>
 						)}

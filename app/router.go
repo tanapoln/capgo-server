@@ -47,6 +47,7 @@ func InitRouter() *gin.Engine {
 		mgmt.POST("/releases.create", ctrl.CreateRelease)
 		mgmt.POST("/releases.update", ctrl.UpdateRelease)
 		mgmt.POST("/releases.set-active", ctrl.SetReleaseActiveBundle)
+		mgmt.POST("/releases.delete", ctrl.DeleteRelease)
 	}
 
 	router.GET("/_healthz", func(c *gin.Context) {

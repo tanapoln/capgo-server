@@ -1,6 +1,7 @@
 import useSWR, { mutate } from "swr";
 import {
 	createRelease,
+	deleteRelease,
 	listBundles,
 	listReleases,
 	setReleaseActiveBundle,
@@ -9,6 +10,7 @@ import {
 } from "./api";
 import type {
 	CreateReleaseRequest,
+	DeleteReleaseRequest,
 	SetReleaseActiveBundleRequest,
 	UpdateReleaseRequest,
 	UploadBundleRequest,
@@ -71,6 +73,14 @@ export function useUpdateReleaseMutation() {
 export function useSetReleaseActiveBundleMutation() {
 	const trigger = async (req: SetReleaseActiveBundleRequest) => {
 		await setReleaseActiveBundle(req);
+		mutate("releases");
+	};
+	return { trigger };
+}
+
+export function useDeleteReleaseMutation() {
+	const trigger = async (req: DeleteReleaseRequest) => {
+		await deleteRelease(req);
 		mutate("releases");
 	};
 	return { trigger };
