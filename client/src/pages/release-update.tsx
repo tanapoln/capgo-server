@@ -1,26 +1,16 @@
-import { Await } from "react-router-dom";
-import { listReleases } from "../client/api";
-import { Suspense } from "react";
-import { ListAllReleasesResponse } from "../client/types";
+import { useParams } from "react-router-dom";
+import { useRelease } from "../client/hooks";
 
 export default function ReleaseUpdatePage() {
-	const releases = listReleases();
+	const { releaseId } = useParams();
+	const { data: release, isLoading, error } = useRelease(releaseId!);
 
 	return (
 		<div>
 			<h1>Update Releases</h1>
-			<Suspense fallback={<div>Loading...</div>}>
-				<Await
-					resolve={releases}
-					children={(resolved: ListAllReleasesResponse) => (
-						<div>
-							{resolved.data.map((release) => (
-								<div key={release.id}>{release.version_name}</div>
-							))}
-						</div>
-					)}
-				/>
-			</Suspense>
+			{isLoading && <div>Loading...</div>}
+			{error && <div>Error: {error.message}</div>}
+			{release && <div>Release: {release.id}</div>}
 		</div>
 	);
 }

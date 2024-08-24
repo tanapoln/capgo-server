@@ -1,14 +1,14 @@
+import { App as AntApp } from "antd";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./global.css";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
-import LoginPage from "./pages/login-page.tsx";
-import ReleasesPage from "./pages/releases-page.tsx";
 import App from "./App.tsx";
+import "./global.css";
 import BundleUploadPage from "./pages/bundle-upload.tsx";
-import { App as AntApp } from "antd";
+import LoginPage from "./pages/login-page.tsx";
 import ReleaseCreatePage from "./pages/release-create.tsx";
 import ReleaseUpdatePage from "./pages/release-update.tsx";
+import ReleasesPage from "./pages/releases-page.tsx";
 
 const router = createBrowserRouter([
 	{
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
 				element: <ReleaseCreatePage />,
 			},
 			{
-				path: "release/update",
+				path: "release/:releaseId/update",
 				element: <ReleaseUpdatePage />,
 			},
 			{

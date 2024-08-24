@@ -1,8 +1,8 @@
 import { Button, Form, FormProps, Input, message, Radio, Select } from "antd";
-import { createRelease, listBundles } from "../client/api";
-import { useEffect, useState } from "react";
-import { BundleResponse, Platform } from "../client/types";
+import type { Platform } from "../client/types";
 import { useNavigate } from "react-router-dom";
+import { useBundles, useCreateReleaseMutation } from "../client/hooks";
+
 
 type FieldType = {
 	platform: string;
@@ -15,33 +15,29 @@ type FieldType = {
 export default function ReleaseCreatePage() {
 	const navigate = useNavigate();
 	const [messageApi, contextHolder] = message.useMessage();
-	const [bundles, setBundles] = useState<BundleResponse[]>([]);
-	useEffect(() => {
-		(async () => {
-			const b = await listBundles();
-			setBundles(b.data);
-		})();
-	}, []);
+
+	const { data: bundles, isLoading, error } = useBundles();
+	const { trigger } = useCreateReleaseMutation();
 
 	const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
 		try {
-			await createRelease({
+			await trigger({
 				platform: values.platform as Platform,
 				app_id: values.app_id,
 				version_name: values.version_name,
 				version_code: values.version_code,
 				builtin_bundle_id: values.builtin_bundle_id,
 			});
-			// navigate("/app");
+			navigate("/app");
 		} catch (e) {
 			messageApi.error(`${e}`);
 		}
 	};
 
-	const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = async (errorInfo) => {};
+	const onFinishFailed: FormProps<FieldType>["onFinishFailed"] = async () => {};
 
 	return (
-		<div>
+		<div style={{ padding: "24px 0" }}>
 			{contextHolder}
 			<h1>Create Releases</h1>
 			<div>
@@ -95,12 +91,16 @@ export default function ReleaseCreatePage() {
 						name="builtin_bundle_id"
 						rules={[{ required: true, message: "Please input value!" }]}
 					>
-						<Select
-							options={bundles.map((b) => ({
-								value: b.id,
-								label: `${b.version_name} - ${b.description}`,
-							}))}
-						/>
+						{isLoading && <Select options={[{ value: "", label: "Loading..." }]} />}
+						{error && <div>Error: {error.message}</div>}
+						{bundles && (
+							<Select
+								options={bundles.data.map((b) => ({
+									value: b.id,
+									label: `${b.version_name} - ${b.description}`,
+								}))}
+							/>
+						)}
 					</Form.Item>
 
 					<Form.Item wrapperCol={{ offset: 8, span: 16 }}>

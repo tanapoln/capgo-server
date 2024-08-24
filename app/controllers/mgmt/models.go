@@ -42,6 +42,7 @@ type ListAllBundlesResponse struct {
 
 type ReleaseResponse struct {
 	ID              string     `json:"id"`
+	AppID           string     `json:"app_id"`
 	Platform        string     `json:"platform"`
 	VersionName     string     `json:"version_name"`
 	VersionCode     string     `json:"version_code"`

@@ -321,6 +321,7 @@ func mapBundleToResponse(bundle db.Bundle) BundleResponse {
 func mapReleaseToResponse(release db.Release) ReleaseResponse {
 	r := ReleaseResponse{
 		ID:              release.ID.Hex(),
+		AppID:           release.AppID,
 		VersionName:     release.VersionName,
 		Platform:        string(release.Platform),
 		VersionCode:     release.VersionCode,

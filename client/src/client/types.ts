@@ -29,6 +29,7 @@ export type BundleModifiedResponse = {
 export type ReleaseResponse = {
     id: string;
     platform: Platform;
+    app_id: string;
     version_name: string;
     version_code: string;
     release_date: string | null | undefined;
