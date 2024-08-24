@@ -54,5 +54,7 @@ func InitRouter() *gin.Engine {
 		c.String(http.StatusOK, "ok")
 	})
 
+	router.Static("/ui", "./client/dist")
+
 	return router
 }

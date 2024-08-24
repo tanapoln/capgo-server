@@ -27,7 +27,7 @@ export default function ReleaseCreatePage() {
 				version_code: values.version_code,
 				builtin_bundle_id: values.builtin_bundle_id,
 			});
-			navigate("/app");
+			navigate(`${import.meta.env.BASE_URL}/app`);
 		} catch (e) {
 			messageApi.error(`${e}`);
 		}

@@ -167,7 +167,7 @@ function DeleteReleaseForm({ release }: { release: ReleaseResponse }) {
 	const onSubmit = () => {
 		trigger({ release_id: release.id });
 		message.success("Release deleted");
-		navigate("/app")
+		navigate(`${import.meta.env.BASE_URL}/app`);
 	};
 
 	return (

@@ -9,12 +9,12 @@ export default function LoginPage() {
 
 	const handleLogin = () => {
 		localStorage.setItem("token", apiKey);
-		navigate("/app");
+		navigate(`${import.meta.env.BASE_URL}/app`);
 	};
 
 	return (
 		<>
-			{token && <Navigate to="/app" />}
+			{token && <Navigate to={`${import.meta.env.BASE_URL}/app`} />}
 			<Flex justify="center" align="center" style={{ height: "100vh" }}>
 				<Card style={{ minWidth: "350px" }}>
 					<h1>Login</h1>

@@ -24,7 +24,7 @@ export default function BundleUploadPage() {
 				version_name: values.version_name,
 				description: values.description ?? "",
 			});
-			navigate("/app");
+			navigate(`${import.meta.env.BASE_URL}/app`);
 		} catch (e) {
 			messageApi.error(`${e}`);
 		}

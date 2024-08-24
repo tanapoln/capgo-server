@@ -7,15 +7,15 @@ const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 const items: MenuItem[] = [
 	{
-		key: "/app",
+		key: `${import.meta.env.BASE_URL}/app`,
 		label: "Releases",
 	},
 	{
-		key: "/app/release/create",
+		key: `${import.meta.env.BASE_URL}/app/release/create`,
 		label: "Create Release",
 	},
 	{
-		key: "/app/upload-bundle",
+		key: `${import.meta.env.BASE_URL}/app/upload-bundle`,
 		label: "Upload Bundle",
 	},
 ];
@@ -24,19 +24,19 @@ function App() {
 	const token = localStorage.getItem("token");
 	const navigate = useNavigate();
 	const location = useLocation();
-	const currentPage = location.pathname.replace(/\/$/, "")
+	const currentPage = location.pathname.replace(/\/$/, "");
 	const handleNavigate: MenuClickEventHandler = (e) => {
 		navigate(e.key);
 	};
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
-		navigate("/");
+		navigate(import.meta.env.BASE_URL);
 	};
 
 	return (
 		<>
-			{!token && <Navigate to="/login" />}
+			{!token && <Navigate to={`${import.meta.env.BASE_URL}/login`} />}
 			<Layout>
 				<Header style={{ display: "flex", alignItems: "center", gap: 48 }}>
 					<h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "white" }}>Capgo UI</h1>
