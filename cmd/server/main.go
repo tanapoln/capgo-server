@@ -19,7 +19,7 @@ func main() {
 	defer stop()
 
 	slog.Info("Connecting to database...")
-	if err := db.InitDB(); err != nil {
+	if err := db.InitDB(ctx); err != nil {
 		slog.Error("Error init db", "error", err)
 		os.Exit(1)
 	}

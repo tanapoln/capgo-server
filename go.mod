@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.60.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/mandrigin/gin-spa v0.0.0-20200212133200-790d0c0c7335
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.20.1
 	github.com/rs/xid v1.5.0
@@ -45,6 +46,7 @@ require (
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/gin-gonic/contrib v0.0.0-20240508051311-c1c6bf0061b0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

@@ -10,6 +10,7 @@ import (
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/apikey"
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/httpstats"
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/ratelimit"
+	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/spa"
 	"github.com/tanapoln/capgo-server/config"
 	"golang.org/x/time/rate"
 )
@@ -54,7 +55,7 @@ func InitRouter() *gin.Engine {
 		c.String(http.StatusOK, "ok")
 	})
 
-	router.Static("/ui", "./client/dist")
+	spa.Middleware(router, "/ui", "./client/dist", "/index.html")
 
 	return router
 }

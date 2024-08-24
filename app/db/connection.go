@@ -14,8 +14,8 @@ var (
 	db   *mongo.Database
 )
 
-func InitDB() error {
-	ctx, cancelFn := context.WithTimeout(context.Background(), time.Second*10)
+func InitDB(ctx context.Context) error {
+	ctx, cancelFn := context.WithTimeout(ctx, time.Second*10)
 	defer cancelFn()
 
 	cfg := config.Get()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 
@@ -9,7 +10,7 @@ import (
 
 func main() {
 	slog.Info("Connecting to database...")
-	if err := db.InitDB(); err != nil {
+	if err := db.InitDB(context.Background()); err != nil {
 		slog.Error("Error init db", "error", err)
 		os.Exit(1)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -21,8 +22,8 @@ func init() {
 	}
 
 	var s3Opts []func(*s3.Options)
-	if config.Get().S3BaseEndpoint != nil {
-		cfg.BaseEndpoint = config.Get().S3BaseEndpoint
+	if config.Get().S3BaseEndpoint != "" {
+		cfg.BaseEndpoint = aws.String(config.Get().S3BaseEndpoint)
 		s3Opts = append(s3Opts, func(o *s3.Options) {
 			o.UsePathStyle = true
 		})
