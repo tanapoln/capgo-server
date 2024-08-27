@@ -34,10 +34,10 @@ func (ctrl *CapgoController) Updates(ctx *gin.Context) {
 			}, nil
 		}
 
-		bundle, err := ctrl.updateService.GetLatest(ctx.Request.Context(), services.GetLatestQuery{
+		result, err := ctrl.updateService.GetLatest(ctx.Request.Context(), services.GetLatestQuery{
 			AppID:       reqBody.AppID,
 			Platform:    reqBody.GetPlatform(),
-			VersionName: reqBody.VersionName,
+			VersionName: reqBody.VersionBuild,
 			VersionCode: reqBody.VersionCode,
 		})
 		if err != nil {
@@ -47,10 +47,10 @@ func (ctrl *CapgoController) Updates(ctx *gin.Context) {
 		}
 
 		return UpdateWithNewMinorVersionResponse{
-			Version:   bundle.VersionName,
-			Checksum:  bundle.CRC,
-			URL:       bundle.PublicDownloadURL,
-			Signature: bundle.Signature,
+			Version:   result.VersionName(),
+			Checksum:  result.Checksum(),
+			URL:       result.PublicDownloadURL(),
+			Signature: result.Signature(),
 		}, nil
 	})
 }

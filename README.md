@@ -35,6 +35,7 @@ The following table describes the environment variables that can be used to conf
 | AWS_ACCESS_KEY_ID        | AWS access key ID for S3 authentication                                                                                                                                                                               | Automatically resolve using AWS SDK Credential Provider Chain |
 | AWS_SECRET_ACCESS_KEY    | AWS secret access key for S3 authentication                                                                                                                                                                           | Automatically resolve using AWS SDK Credential Provider Chain |
 | AWS_REGION               | AWS region for S3 bucket                                                                                                                                                                                              | Automatically resolve using AWS SDK configuration resolution. |
+| CACHE_RESULT_DURATION    | Duration for caching the result of the `POST /updates` API.                                                                                                                                                               | 10 minutes                                                    |
 
 These environment variables can be used to override the corresponding settings in the `config.yml` file. For more detailed information about the configuration, please refer to the [config/config.go](./config/config.go) file.
 

@@ -20,8 +20,9 @@ func NewRateLimiter(key LimiterKeyFunc, factory LimiterFactory, abort AbortFunc)
 		k := key(c)
 		limiter, ok := limiterSet.Get(k)
 		if !ok {
-			limiter, expire := factory(c)
-			limiterSet.Set(k, limiter, expire)
+			l, expire := factory(c)
+			limiterSet.Set(k, l, expire)
+			limiter = l
 		}
 
 		ok = limiter.(*rate.Limiter).Allow()

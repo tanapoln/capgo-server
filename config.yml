@@ -5,3 +5,4 @@ s3_bucket: "test"
 management_api_tokens:
 - key1
 - key2
+cache_result_duration: 1s
