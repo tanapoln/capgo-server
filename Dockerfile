@@ -21,10 +21,9 @@ WORKDIR /app
 RUN go mod download
 
 ADD . /app
-RUN go build -o /app/.bin/server /app/cmd/server
-RUN go build -o /app/.bin/migrate /app/cmd/migrate
-
-
+RUN go test ./... && \
+    go build -o /app/.bin/server /app/cmd/server && \
+    go build -o /app/.bin/migrate /app/cmd/migrate
 
 
 FROM alpine:3
