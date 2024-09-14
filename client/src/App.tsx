@@ -1,6 +1,7 @@
 import { Button, Layout, Menu, type MenuProps } from "antd";
 import type { MenuClickEventHandler } from "rc-menu/lib/interface";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { isLoggedIn, logout } from "./client/auth";
 
 const { Header, Content } = Layout;
 
@@ -21,7 +22,6 @@ const items: MenuItem[] = [
 ];
 
 function App() {
-	const token = localStorage.getItem("token");
 	const navigate = useNavigate();
 	const location = useLocation();
 	const currentPage = location.pathname.replace(/\/$/, "");
@@ -30,13 +30,13 @@ function App() {
 	};
 
 	const handleLogout = () => {
-		localStorage.removeItem("token");
+		logout();
 		navigate(import.meta.env.BASE_URL);
 	};
 
 	return (
 		<>
-			{!token && <Navigate to={`${import.meta.env.BASE_URL}/login`} />}
+			{!isLoggedIn() && <Navigate to={`${import.meta.env.BASE_URL}/login`} />}
 			<Layout>
 				<Header style={{ display: "flex", alignItems: "center", gap: 48 }}>
 					<h1 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: "white" }}>Capgo UI</h1>

@@ -3,13 +3,14 @@ import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, Outlet, RouterProvider, useLocation, useNavigate } from "react-router-dom";
 import App from "./App.tsx";
+import { isLoggedIn } from "./client/auth.ts";
 import "./global.css";
 import BundleUploadPage from "./pages/bundle-upload.tsx";
+import LoginOAuthCallbackPage from "./pages/login-oauth-callback.tsx";
 import LoginPage from "./pages/login-page.tsx";
 import ReleaseCreatePage from "./pages/release-create.tsx";
 import ReleaseUpdatePage from "./pages/release-update.tsx";
 import ReleasesPage from "./pages/releases-page.tsx";
-
 const router = createBrowserRouter([
 	{
 		path: import.meta.env.BASE_URL,
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
 			{
 				path: "login",
 				element: <LoginPage />,
+			},
+			{
+				path: "login/oauth-callback",
+				element: <LoginOAuthCallbackPage />,
 			},
 			{
 				path: "app",
@@ -49,17 +54,17 @@ const router = createBrowserRouter([
 function RootPage() {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const token = localStorage.getItem("token");
+	const isLogin = isLoggedIn();
 	useEffect(() => {
 		if (location.pathname.replace(/\/$/, "") === import.meta.env.BASE_URL) {
-			if (token) {
+			if (isLogin) {
 				navigate("app");
 			} else {
 				navigate("login");
 			}
 		}
-	}, [token, location.pathname, navigate])
-	
+	}, [isLogin, location.pathname, navigate]);
+
 	return <Outlet />;
 }
 

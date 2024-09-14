@@ -74,3 +74,8 @@ export type DeleteReleaseRequest = {
 export type GenericResponse = {
     message: string;
 }
+
+export type OAuth2ConfigResponse = {
+    issuer: string;
+    client_id: string;
+}

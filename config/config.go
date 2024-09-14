@@ -17,6 +17,8 @@ type Config struct {
 	LimitRequestPerMinute int           `yaml:"limit_request_per_minute" env:"LIMIT_REQUEST_PER_MINUTE" env-default:"100"`
 	TrustedProxies        []string      `yaml:"trusted_proxies" env:"TRUSTED_PROXIES"`
 	CacheResultDuration   time.Duration `yaml:"cache_result_duration" env:"CACHE_RESULT_DURATION" env-default:"10m"`
+	OAuthIssuer           string        `yaml:"oauth_issuer" env:"OAUTH_ISSUER"`
+	OAuthClientID         string        `yaml:"oauth_client_id" env:"OAUTH_CLIENT_ID"`
 }
 
 var (

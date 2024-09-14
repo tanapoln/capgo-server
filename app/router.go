@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	capgoCtrl "github.com/tanapoln/capgo-server/app/controllers/capgo"
 	mgmtCtrl "github.com/tanapoln/capgo-server/app/controllers/mgmt"
-	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/apikey"
+	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/authn"
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/httpstats"
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/ratelimit"
 	"github.com/tanapoln/capgo-server/app/controllers/utils/middlewares/spa"
@@ -38,7 +38,10 @@ func InitRouter() *gin.Engine {
 
 	mgmt := router.Group("/api/v1/")
 	{
-		mgmt.Use(apikey.NewApiKeyMiddleware("x-api-key", config.Get().ManagementAPITokens))
+		mgmt.Use(authn.MultiAuthMiddleware(map[string]gin.HandlerFunc{
+			"x-api-key":     authn.NewApiKeyMiddleware("x-api-key", config.Get().ManagementAPITokens),
+			"Authorization": authn.NewOAuthMiddleware("Authorization"),
+		}))
 
 		ctrl := mgmtCtrl.NewCapgoManagementController()
 		mgmt.GET("/bundles.list", ctrl.ListAllBundles)
@@ -54,6 +57,16 @@ func InitRouter() *gin.Engine {
 	router.GET("/_healthz", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
+
+	public := router.Group("/apipublic/v1")
+	{
+		public.GET("/oauth2.config", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"issuer":    config.Get().OAuthIssuer,
+				"client_id": config.Get().OAuthClientID,
+			})
+		})
+	}
 
 	spa.Middleware(router, "/ui", "./client/dist", "/index.html")
 

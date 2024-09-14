@@ -1,3 +1,4 @@
+import { getHTTPHeaders, logout } from "./auth";
 import {
 	BundleModifiedResponse,
 	CreateReleaseRequest,
@@ -5,6 +6,7 @@ import {
 	GenericResponse,
 	ListAllBundlesResponse,
 	ListAllReleasesResponse,
+	OAuth2ConfigResponse,
 	ReleaseModifiedResponse,
 	SetReleaseActiveBundleRequest,
 	UpdateReleaseRequest,
@@ -12,23 +14,22 @@ import {
 } from "./types";
 
 const API_URL = "/api/v1";
+const PUBLIC_API_URL = "/apipublic/v1";
 
 const callApi = async (
 	method: "POST" | "GET" | "PUT" | "DELETE",
 	action: string,
-	body: BodyInit | null = null
+	body: BodyInit | null = null,
+	baseUrl: string = API_URL
 ) => {
-	const token = localStorage.getItem("token");
-	const response = await fetch(`${API_URL}/${action}`, {
+	const response = await fetch(`${baseUrl}/${action}`, {
 		method: method,
-		headers: {
-			"x-api-key": token ?? "",
-		},
+		headers: getHTTPHeaders(),
 		body: body,
 	});
 	if (!response.ok) {
 		if (response.status === 401) {
-			localStorage.removeItem("token");
+			logout()
 		}
 		const errBody = await response.json();
 		throw new Error(`API Error ${response.status}: ${errBody["error"] ?? errBody["message"] ?? ""}`);
@@ -77,4 +78,16 @@ export const setReleaseActiveBundle = async (
 ): Promise<ReleaseModifiedResponse> => {
 	const resp = await callApi("POST", "releases.set-active", JSON.stringify(req));
 	return resp.json();
+};
+
+export const getOAuth2Config = async (): Promise<OAuth2ConfigResponse> => {
+	const response = await fetch(`${PUBLIC_API_URL}/oauth2.config`, {
+		method: 'GET',
+	});
+
+	if (!response.ok) {
+		throw new Error(`API Error ${response.status}: ${response.statusText}`);
+	}
+
+	return response.json();
 };
