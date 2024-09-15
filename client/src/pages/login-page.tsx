@@ -1,6 +1,7 @@
 import { Button, Card, Divider, Flex, Input, Space } from "antd";
+import { UserManager } from "oidc-client-ts";
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Await, Navigate, useNavigate } from "react-router-dom";
 import { isLoggedIn, oauthUserManager, setAPIToken, setOAuthToken } from "../client/auth";
 
 export default function LoginPage() {
@@ -9,12 +10,6 @@ export default function LoginPage() {
 
 	const handleLogin = () => {
 		setAPIToken(apiKey);
-		navigate(`${import.meta.env.BASE_URL}/app`);
-	};
-
-	const handleLoginWithOAuth2 = async () => {
-		const user = await (await oauthUserManager).signinPopup({});
-		setOAuthToken(user.access_token);
 		navigate(`${import.meta.env.BASE_URL}/app`);
 	};
 
@@ -36,15 +31,40 @@ export default function LoginPage() {
 						<Button type="primary" onClick={handleLogin}>
 							Login
 						</Button>
+						<Await
+							resolve={oauthUserManager}
+							children={(manager: UserManager | null) => {
+								if (manager === null) {
+									return null;
+								}
+
+								return (
+									<>
+										<Divider />
+										<OAuthLoginButton manager={manager} />
+									</>
+								);
+							}}
+						></Await>
 					</Space>
-					<Divider />
-					<div>
-						<Button type="primary" onClick={handleLoginWithOAuth2}>
-							Login with OAuth 2
-						</Button>
-					</div>
 				</Card>
 			</Flex>
 		</>
+	);
+}
+
+function OAuthLoginButton({ manager }: { manager: UserManager }) {
+	const navigate = useNavigate();
+
+	const handleLoginWithOAuth2 = async () => {
+		const user = await manager.signinPopup({});
+		setOAuthToken(user.access_token);
+		navigate(`${import.meta.env.BASE_URL}/app`);
+	};
+
+	return (
+		<Button type="primary" onClick={handleLoginWithOAuth2}>
+			Login with OAuth 2
+		</Button>
 	);
 }

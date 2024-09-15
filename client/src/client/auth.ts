@@ -1,8 +1,13 @@
 import { UserManager } from "oidc-client-ts";
 import { getOAuth2Config } from "./api";
 
+
 export const oauthUserManager = (async () => {
 	const config = await getOAuth2Config();
+	if (!config.client_id || !config.issuer) {
+		return null;
+	}
+
 	return new UserManager({
 		authority: config.issuer,
 		client_id: config.client_id,
