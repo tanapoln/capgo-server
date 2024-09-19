@@ -36,6 +36,19 @@ func InitRouter() *gin.Engine {
 		capgo.DELETE("/channel_self", ctrl.UnregisterChannel)
 	}
 
+	router.GET("/_healthz", func(c *gin.Context) {
+		c.String(http.StatusOK, "ok")
+	})
+
+	return router
+}
+
+func InitMgmtRouter() *gin.Engine {
+	router := gin.Default()
+	router.SetTrustedProxies(config.Get().TrustedProxies)
+
+	router.Use(httpstats.NewMiddleware())
+
 	mgmt := router.Group("/api/v1/")
 	{
 		mgmt.Use(authn.MultiAuthMiddleware(map[string]gin.HandlerFunc{

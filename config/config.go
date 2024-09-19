@@ -19,6 +19,8 @@ type Config struct {
 	CacheResultDuration   time.Duration `yaml:"cache_result_duration" env:"CACHE_RESULT_DURATION" env-default:"10m"`
 	OAuthIssuer           string        `yaml:"oauth_issuer" env:"OAUTH_ISSUER"`
 	OAuthClientID         string        `yaml:"oauth_client_id" env:"OAUTH_CLIENT_ID"`
+	CapgoUserPort         int           `yaml:"capgo_user_port" env:"CAPGO_USER_PORT" env-default:"8000"`
+	CapgoManagementPort   int           `yaml:"capgo_management_port" env:"CAPGO_MANAGEMENT_PORT" env-default:"8001"`
 }
 
 var (

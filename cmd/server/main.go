@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/tanapoln/capgo-server/app"
 	"github.com/tanapoln/capgo-server/app/db"
 	"github.com/tanapoln/capgo-server/cmd/server/otel"
+	"github.com/tanapoln/capgo-server/config"
 )
 
 func main() {
@@ -24,8 +26,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := app.InitRouter()
-
 	shutdownOtel, err := otel.SetupOTelSDK(ctx)
 	if err != nil {
 		slog.Error("Error setup otel", "error", err)
@@ -33,14 +33,27 @@ func main() {
 	}
 	defer shutdownOtel(context.Background())
 
-	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+	userSrv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.Get().CapgoUserPort),
+		Handler: app.InitRouter(),
+	}
+
+	mgmtSrv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.Get().CapgoManagementPort),
+		Handler: app.InitMgmtRouter(),
 	}
 
 	go func() {
-		slog.Info("Start listening server", "address", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		slog.Info("Start listening server", "address", userSrv.Addr)
+		if err := userSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Error listening", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		slog.Info("Start listening management server", "address", mgmtSrv.Addr)
+		if err := mgmtSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			slog.Error("Error listening", "error", err)
 			os.Exit(1)
 		}
@@ -51,7 +64,10 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := mgmtSrv.Shutdown(ctx); err != nil {
+		slog.Error("Management server forced to shutdown", "error", err)
+	}
+	if err := userSrv.Shutdown(ctx); err != nil {
 		slog.Error("Server forced to shutdown", "error", err)
 	}
 

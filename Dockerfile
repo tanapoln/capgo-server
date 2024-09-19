@@ -34,7 +34,7 @@ COPY --from=client-builder /app/client/dist /app/client/dist
 COPY --from=go-builder /app/.bin/server /app/server
 COPY --from=go-builder /app/.bin/migrate /app/migrate
 
-EXPOSE 8080 8081
+EXPOSE 8000 8001 8081
 
 RUN adduser -D app
 USER app
