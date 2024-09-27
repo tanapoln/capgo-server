@@ -60,6 +60,10 @@ The following table describes the environment variables that can be used to conf
 
 These environment variables can be used to override the corresponding settings in the `config.yml` file. For more detailed information about the configuration, please refer to the [config/config.go](./config/config.go) file.
 
+### OAuth Configuration
+Sign-in redirection URL is `{{domain}}/ui/login/oauth-callback`
+
+
 # Usage
 
 ## Concepts
